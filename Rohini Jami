@@ -1,0 +1,142 @@
+module digital_clock(clk,an,ca);
+input clk;
+output reg [7:0]an,ca;
+reg clk_1=0,clk_2=0;
+integer i=0,j=0;
+reg [3:0]h1,h0,m1,m0,s1,s0;
+
+always @(posedge clk) //1hz clock 
+begin
+i<=i+1;
+if(i==50000000)
+begin
+clk_1<=~clk_1;
+i<=0;
+end
+end
+
+always @(posedge clk) //refresh rate
+begin
+j<=j+1;
+if(j==50000)
+begin
+clk_2<=~clk_2;
+j<=0;
+end
+end
+
+initial 
+begin
+h1=0;
+h0=0;
+m1=0;
+m0=0;
+s1=0;
+s0=0;
+end
+
+always @(posedge clk_1)
+begin
+if(s0<9)
+s0<=s0+1;
+else
+begin
+s0<=0;
+if(s1<5)
+s1<=s1+1;
+else
+begin
+s1<=0;
+if(m0<9)
+m0<=m0+1;
+else
+begin
+m0<=0;
+if(m1<5)
+m1<=m1+1;
+else
+begin
+m1<=0;
+if((h0<9) && (h1!=2))
+h0<=h0+1;
+else
+begin
+if(h0==9)
+begin
+h0<=0;
+h1<=h1+1;
+end
+else if(h1==2)
+begin
+if(h0<3)
+h0<=h0+1;
+else
+begin
+h0<=0;
+h1<=0;
+end
+end
+end
+end
+end
+end
+end
+end
+
+reg [2:0]sel=0;
+always @(posedge clk_2)
+begin
+sel<=sel+1;
+if(sel==3'b101)
+sel<=3'b000;
+end
+
+reg [3:0]dummy=0;
+always @(posedge clk)
+begin
+case(sel)
+0:begin
+an<=8'b1111_1110;
+dummy<=s0;
+end
+1:begin
+an<=8'b1111_1101;
+dummy<=s1;
+end
+2:begin
+an<=8'b1111_0111;
+dummy<=m0;
+end
+3:begin
+an<=8'b1110_1111;
+dummy<=m1;
+end
+4:begin
+an<=8'b1011_1111;
+dummy<=h0;
+end
+5:begin
+an<=8'b0111_1111;
+dummy<=h1;
+end
+default:an<=8'b1111_1111;
+endcase
+end
+
+always @(posedge clk)
+begin
+case(dummy)
+0:ca<=8'b0000_0011;
+1:ca<=8'b1001_1111;
+2:ca<=8'b0010_0101;
+3:ca<=8'b0000_1101;
+4:ca<=8'b1001_1001;
+5:ca<=8'b0100_1001;
+6:ca<=8'b0100_0001;
+7:ca<=8'b0001_1111;
+8:ca<=8'b0000_0001;
+9:ca<=8'b0000_1001;
+default:ca<=8'b1111_1111;
+endcase
+end
+endmodule
